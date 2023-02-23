@@ -1,0 +1,158 @@
+1. Write a stored procedure that accepts the month and year as inputs and prints the ordernumber, orderdate and status of the orders placed in that month. The month should be abbreviated to three characters.
+Example: 
+   Input: month -> 'Feb'
+          year -> 2003
+          
+   Output:
++------------+---------+
+| orderdate  | status  |
++------------+---------+
+| 2003-02-11 | Shipped |
+| 2003-02-17 | Shipped |
+| 2003-02-24 | Shipped |
++------------+---------+
+3 rows in set (0.001 sec)
+
+ANS- CREATE DEFINER=`root`@`localhost` PROCEDURE `orderdetails`(month varchar(10),year int)
+     BEGIN
+     select orderDate,status from orders where year(orderdate)=year and left(monthname(orderdate),3)=month;
+     END
+
+     call orderdetails('feb',2003);
+
+
+2. Write a stored procedure to insert a record into the cancellations table for all cancelled orders. 
+STEPS: a. Create a table called cancellations with the following fields
+          id (primary key),  custumernumber (foreign key), ordernumber (foreign key), comments
+          All values except id should be taken from the order table
+
+       b. Read through the orders table . If an order is cancelled, then put an entry in the cancellations table.
+          
+ANS-     CREATE DEFINER=`root`@`localhost` PROCEDURE `Cancellations`()
+         BEGIN
+         create table Cancellations(
+				    id int primary key auto_increment,
+                            custumernumber int,
+                            foreign key (custumernumber) references orders(customerNumber) ,
+                            ordernumber int,
+                            foreign key (ordernumber) references orders(orderNumber)
+                            );
+
+        insert into Cancellations(custumernumber,ordernumber)
+        select customerNumber,orderNumber from orders where status='Cancelled';
+					
+        END
+
+
+3. a. Write function that takes the customernumber as input and returns the purchase_status based on the following criteria . [table:Payments]
+
+     if the total purchase amount for the customer is < 25000 status = Silver, amount between 25000 and 50000, status = Gold
+     if amount > 50000 Platinum
+
+ANS- CREATE DEFINER=`root`@`localhost` PROCEDURE `customer_payment`(custno varchar(255))
+     BEGIN
+     declare purchase_status varchar(255);
+     declare amt decimal(10,2);
+     select sum(amount) into amt from payments where customernumber=custno;
+     if (amt<=25000) then
+     select "Status is Silver" as Message;
+     elseif (amt>25000 and amt<50000) then
+     select "Status is Gold" as Message;
+     elseif (amt>50000) then
+     select "Status is Platinum" as Message;
+     else
+     select "Enter correct customerNumber" as Message;
+     end if;
+     END
+
+     call customer_payment(103);
+
+Output:
++------------------+
+| Message          |
++------------------+
+| Status is Silver |
++------------------+
+1 row in set (0.03 sec)
+
+
+b.  Write a query that displays customerid, customername and purchase_status 
+
+ANS- select p.customernumber,customername,(
+     case when amount<25000 then 'Silver' when amount<=50000 then 'Gold' when amount>50000 then 'Platinum' 
+     end) 
+     as purchase_status from payments as p 
+     inner join customers as c 
+     on c.customerNumber=p.customerNumber;
+
+4.  Write a stored procedure that checks the creditlimit and the purchase status of the customers. 
+    If a platinum customer has crediltlimit less than 100,000 raise an exception. In the exception handler update the crediltlimit to 100000.
+    If a silver customer has creditlimit greater than 60,000 raise an exception. In the exception handler update the crediltlimit to 60000.
+
+ANS- CREATE DEFINER=`root`@`localhost` PROCEDURE `check_limit`(creditlimit integer)
+     BEGIN
+     declare continue handler for sqlstate '45000' 
+     begin
+     set creditlimit=100000;
+     end;
+     declare continue handler for sqlstate '49000'
+     begin
+     set creditlimit=60000;
+     end;
+     if creditlimit<100000 then 
+     select "Low creditlimit entered for Platinum customer" as Message;
+     end if;
+     if creditlimit>60000 then
+     select "High creditlimit entered for Silver customer" as Message;
+     end if; 
+     END
+
+   
+5. Replicate the functionality of 'on delete cascade' and 'on update cascade' using triggers on movies and rentals tables. Note: Both tables - movies and rentals - don't have primary or foreign keys. Use only triggers to implement the above.
+
+ANS- create table rentals(memid integer, first_name varchar(25), last_name varchar(25), movieid integer);
+
+insert into rentals values(1,'Alicia','Alarcon', 1),
+(2,'Don','Draper', 2),
+(3,'Lizzie','Moss', 5),
+(4,'Eldon','Chance', 8),
+(5,'Jenny','Patterson', 10),
+(6,'Craig','Daniels', null),
+(7,'Denny', 'Peters',null),
+(8,'Patty','Pattinson',null);
+
+create table movies (id integer, title varchar(50), category varchar(25));
+
+insert into movies values(1,	"ASSASSIN'S CREED: EMBERS",	'Animations'),
+(2,	'Real Steel',	'Animations'),
+(3,	'Alvin and the Chipmunks',	'Animations'),
+(4,	'The Adventures of Tin Tin',	'Animations'),
+(5,	'Safe', 	'Action'),
+(6,	'Safe House',	'Action'),
+(7,	'GIA',	'18+'),
+(8,	'Deadline 2009',	'18+'),
+(9,	'The Dirty Picture',	'18+'),
+(10,	'Marley and me',	'Romance');
+
+
+
+DELIMITER $$
+CREATE TRIGGER trg_movies_update
+AFTER DELETE ON movies
+FOR EACH ROW
+BEGIN
+   UPDATE rentals
+   set movieid = id
+   WHERE movieid=old.id;
+END;
+
+
+DELIMITER $$
+CREATE TRIGGER trg_movies_delete
+AFTER DELETE ON MOVIES
+FOR EACH ROW
+BEGIN
+    DELETE FROM rentals
+    where movieid
+    NOT IN(SELECT DISTINCT ID FROM MOVIES);
+END;
