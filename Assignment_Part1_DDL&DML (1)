@@ -1,0 +1,148 @@
+1. create a database called 'assignment' (Note please do the assignment tasks in this database)
+
+ANS- create database assignment;
+     use assignment;
+
+
+2.  Create the tables from assignment_tables.sql and enter the records as specified in it.
+
+ANS- create table order_details(order_id integer,purchase_date varchar(255),product_name varchar(255),order_status varchar(255));
+     insert into order_details values (100,'12-10-2020','television','shipped'),(200,'30-10-2020','almirah','delivered'),(300,'04-09-2020','heater','reached warehouse');
+
+3. Create a table called authors with the following columns
+authorid , name
+- choose appropriate datatypes for the columns
+	a) Insert the following data into the table
+		1, J K Rowling
+		2, Thomas Hardy
+		3, Oscar Wilde
+		4, Sidney Sheldon
+		5, Alistair Maclean
+		6, Jane Autsen
+	b) Add a couple of authors of your choice
+	c) Change 'Alistair Maclean' to 'Alastair McNeal'
+
+ANS- use assignment;
+     create table authors(Authorid integer,Name varchar(255));
+ (a) insert into authors values(1,'J K Rowling'),(2,'Thomas Hardy'),(3,'Oscar Wilde'),(4,'Sidney Sheldon'),(5,'Alistair Maclean'),(6,'Jane Autsen');
+ (b) insert into authors values(7,'Agatha Christie'),(8,'Barbara Cartland'),(9,'Danielle Steel'),(10,'Harold Robbins');
+ (c) update authors set Name='Alistair McNeal' where Authorid=5;
+     select * from authors;
+
+4. Create a table called Books with the following  columns
+bookid, title, authorid
+- choose appropriate datatypes for the columns
+
+
+	a) Insert the following records
+
+		1,Harry Potter and the Philosopher's Stone,1
+		2,Harry Potter and the Chamber of Secrets,1
+		3,Harry Potter and the Half-Blood Prince,1
+		4,Harry Potter and the Goblet of Fire,1
+		5,Night Without End,5
+		6,Fear is the Key,5
+		7,Where Eagles Dare,5
+		8,Sense and Sensibility,6
+		9,Pride and Prejudice,6
+		10,Emma,6
+		11,Random Book,22
+
+	b) Delete 'Random Book' from the table.
+
+ANS- use assignment;
+     create table Books(Bookid integer,Title varchar(255),Authorid integer);
+ (a) insert into Books values(1,'Harry Potter and the Philosophers Stone',1),(2,'Harry Potter and the Chamber of Secrets',1),(3,'Harry Potter and the Half-Blood Prince',1),(4,'Harry Potter and the Goblet of Fire',1),(5,'Night Without End',5),(6,'Fear is the Key',5),(7,'Where Eagles Dare',5),(8,'Sense and Sensibility',6),(9,'Pride and Prejudice',6),(10,'Emma',6),(11,'Random Book',22);
+     select * from books;
+ (b) delete from books where authorid=22;
+     select * from books;
+
+
+5. Rename the table Books to Favbooks and Authors to Favauthors.
+
+ANS- use assignment;
+     rename table books to Favbooks;
+     rename table authors to Favauthors;
+
+
+6. Create the following tables. Use auto increment wherever applicable
+ANS- First we have to create suppliers table then products table. 
+     At last we will create stock table.
+     First creating the parent table then child table. 
+
+	a. Product
+
+		product_id - primary key
+		product_name - cannot be null and only unique values are allowed
+		description
+		supplier_id - foreign key of supplier table
+        ANS- create table product(product_id integer primary key auto_increment,product_name varchar(255) not null unique,supplier_id integer,foreign key(supplier_id) references suppliers(supplier_id)
+             -> on delete cascade
+             -> on update cascade);
+             desc product;
+
+	b. Suppliers
+
+		supplier_id - primary key
+		supplier_name 
+		location
+        ANS- create table Suppliers(supplier_id integer primary key auto_increment,supplier_name varchar(255) not null,location varchar(255));
+             desc suppliers;
+
+	c. Stock
+
+		id - primary key
+		product_id - foreign key of product table
+		balance_stock  
+        ANS- create table Stock(id integer primary key auto_increment,product_id integer,balance_stock integer,foreign key(product_id) references product(product_id)
+             -> on delete cascade
+             -> on update cascade);
+             desc stock;
+
+7.   Enter some records into the three tables.
+ANS- desc suppliers;
+     insert into suppliers(supplier_name,location) values('Daksh','Bangalore'),('Saanvi','Bhilai'),('Ahaan','Indore');
+     select * from suppliers;
+
+     desc product;
+     insert into product(product_name,supplier_id) values('Clothes',2),('Gadgets',3),('Stationery',1),('Household',2),('Furniture',3),('Cosmetics',2);
+     select * from product;
+
+     desc stock;
+     insert into stock(product_id,balance_stock) values(1,263),(2,34),(3,58),(4,35),(5,12),(6,33);
+     select * from stock;
+
+
+8.   Modify the supplier table to make supplier name unique and not null.
+ANS- alter table suppliers modify supplier_name varchar(255) unique not null;
+
+
+9. Modify the emp table as follows
+  	a. Add a column called deptno
+  	b. Set the value of deptno in the following order
+  	       deptno = 20 where emp_id is divisible by 2
+  	       deptno = 30 where emp_id is divisible by 3
+  	       deptno = 40 where emp_id is divisible by 4
+  	       deptno = 50 where emp_id is divisible by 5
+  	       deptno = 10 for the remaining records.
+
+ANS- (a) alter table emp add column deptno integer;
+     (b) update emp set deptno=20 where emp_id%2=0;
+         update emp set deptno=30 where emp_id%3=0;
+         update emp set deptno=40 where emp_id%4=0;
+         update emp set deptno=50 where emp_id%5=0;
+         update emp set deptno=10 where deptno is null;
+         select * from emp;
+
+10.  Create a unique, hash index on the emp_id column. 
+ANS- create unique index idindex on emp(emp_id);
+     create index idindex using hash on emp(emp_id);
+    
+
+
+
+
+
+
+
+
